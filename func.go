@@ -53,6 +53,18 @@ type Function interface {
 	// the same result given the same inputs within a single SQL statement
 	Deterministic() bool
 
+	// The SQLITE_RESULT_SUBTYPE flag indicates to SQLite that a
+	// function might call sqlite3_result_subtype() to cause a sub-type
+	// to be associated with its result. Every function that invokes
+	// sqlite3_result_subtype() should have this property. If it does
+	// not, then the call to sqlite3_result_subtype() might become a
+	// no-op if the function is used as term in an expression index. On
+	// the other hand, SQL functions that never invoke
+	// sqlite3_result_subtype() should avoid setting this property, as
+	// the purpose of this property is to disable certain optimizations
+	// that are incompatible with subtypes.
+	ResultSubtype() bool
+
 	// Args returns the number of arguments that this function accepts
 	Args() int
 }
@@ -88,6 +100,10 @@ func (ext *ExtensionApi) CreateFunction(name string, fn Function) error {
 	var eTextRep = C.int(C.SQLITE_UTF8)
 	if fn.Deterministic() {
 		eTextRep |= C.SQLITE_DETERMINISTIC
+	}
+
+	if fn.ResultSubtype() {
+		eTextRep |= C.SQLITE_RESULT_SUBTYPE
 	}
 
 	var pApp = pointer.Save(fn)
