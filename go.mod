@@ -1,4 +1,4 @@
-module go.riyazali.net/sqlite
+module github.com/jyoung15/sqlite
 
 go 1.14
 
